@@ -1,31 +1,31 @@
 class QueryDataUseCase:
-    def __init__(self, consultar_artistas, consultar_tracks, filtro=None):
-        self.consultar_artistas = consultar_artistas
-        self.consultar_tracks = consultar_tracks
-        self.filtro = filtro
+    def __init__(self, query_artists, query_tracks, filter=None):
+        self.query_artists = query_artists
+        self.query_tracks = query_tracks
+        self.filter = filter
 
     def execute(self):
-        if self.filtro == None:
-            filtro = input('\nPara mais informações, digite nomes ou IDs dos artistas separados por vírgula: ')
-            filtro_lista = [f.strip() for f in filtro.split(',')]
+        if self.filter == None:
+            filter = input('\nFor more information, enter artist names or IDs separated by comma: ')
+            filter_list = [f.strip() for f in filter.split(',')]
         else:
-            filtro_lista = [f.strip() for f in self.filtro.split(',')]
+            filter_list = [f.strip() for f in self.filter.split(',')]
 
-        artistas = self.consultar_artistas(filtro_lista)
+        artists = self.query_artists(filter_list)
 
-        resultado = {}
-        for artista in artistas:
-            tracks = self.consultar_tracks(artista.id_artista)
-            resultado[artista.nome_artista] = {
-                'id': artista.id_artista,
+        result = {}
+        for artist in artists:
+            tracks = self.query_tracks(artist.artist_id)
+            result[artist.artist_name] = {
+                'id': artist.artist_id,
                 'top_tracks': [
                     {
-                        'nome_musica': t.nome_musica,
-                        'id_musica': t.id_musica,
-                        'popularidade': t.popularidade,
+                        'song_name': t.song_name,
+                        'song_id': t.song_id,
+                        'popularity': t.popularity,
                         'album': t.album,
-                        'data_insercao': t.data_insercao
+                        'insertion_date': t.insertion_date
                     } for t in tracks
                 ]
             }
-        return resultado
+        return result
