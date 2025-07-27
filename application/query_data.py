@@ -6,8 +6,8 @@ class QueryDataUseCase:
 
     def execute(self):
         if self.filter == None:
-            filter = input('\nFor more information, enter artist names or IDs separated by comma: ')
-            filter_list = [f.strip() for f in filter.split(',')]
+            user_input = input('\nFor more information, enter artist names or IDs separated by comma: ')
+            filter_list = [f.strip() for f in user_input.split(',')]
         else:
             filter_list = [f.strip() for f in self.filter.split(',')]
 
