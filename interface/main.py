@@ -5,23 +5,23 @@ from application.update_data import UpdateDataUseCase
 from application.query_data import QueryDataUseCase
 
 
-def main(spotify_client_id, spotify_client_secret, artistas_json, filtro):
+def main(spotify_client_id, spotify_client_secret, artists_json, filter):
     try:   
         api = SpotifyAPI(spotify_client_id, spotify_client_secret)
-        banco = BancoDeDados()
+        database = Database()
 
-        if artistas_json is not None:
-            usecase = AtualizarDadosUseCase(api, banco.checagem_data_dados, banco.criar_csv, banco.inserir_dados_csv_no_banco)
-            usecase.executar(artistas_json)
+        if artists_json is not None:
+            usecase = UpdateDataUseCase(api, database.check_data_date, database.create_csv, database.insert_csv_data_to_database)
+            usecase.execute(artists_json)
         else:
-            print('Consulta direta: serão usados os dados já existentes no banco.')
+            print('Direct query: existing data from database will be used.')
 
-        banco.exibir_artistas()
+        database.display_artists()
 
-        usecase = ConsultarDadosUseCase(banco.consultar_dados_artistas, banco.consultar_dados_top_tracks, filtro)
-        resultado = usecase.executar()
+        usecase = QueryDataUseCase(database.query_artists_data, database.query_top_tracks_data, filter)
+        result = usecase.execute()
 
-        print(resultado)
+        print(result)
             
     except Exception as e:
         print(e)
@@ -32,10 +32,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--id', type=str, required=False)
     parser.add_argument('--secret', type=str, required=False)
-    parser.add_argument('--artistas_json', type=str, required=False)
-    parser.add_argument('--filtro', type=str, required=False, help='Nomes ou ids separados por virgula')
+    parser.add_argument('--artists_json', type=str, required=False)
+    parser.add_argument('--filter', type=str, required=False, help='Names or IDs separated by comma')
     args = parser.parse_args()
     main(args.id,
          args.secret,
-         args.artistas_json,
-         args.filtro)
+         args.artists_json,
+         args.filter)
