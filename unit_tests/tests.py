@@ -4,7 +4,7 @@ import json
 import os
 import csv
 from infrastructure.api import SpotifyAPI
-from infrastructure.database import Database, session, Artistas, TopTracks
+from infrastructure.database import Database, session, Artists, TopTracks
 from domain.models import Artist, Track, Token
 from datetime import date
 from io import StringIO
@@ -14,7 +14,7 @@ class TestsSpotifyAPI(unittest.TestCase):
     @patch('requests.post')
     def test_request_token(self, mock_post):
         """
-        Testa se o método _solicitar_token retorna um objeto Token válido ao receber resposta da API.
+        Tests if the _request_token method returns a valid Token object when receiving API response.
         """
         mock_post.return_value.status_code = 200
         mock_post.return_value.json.return_value = {
@@ -22,11 +22,11 @@ class TestsSpotifyAPI(unittest.TestCase):
             'expires_in': 3600
         }
 
-        client_id = 'meu_client_id'
-        client_secret = 'meu_client_secret'
+        client_id = 'my_client_id'
+        client_secret = 'my_client_secret'
 
         api = SpotifyAPI(client_id, client_secret)
-        token_obj = api._solicitar_token()
+        token_obj = api._request_token()
         
         mock_post.assert_called_with(
             'https://accounts.spotify.com/api/token',
@@ -37,14 +37,14 @@ class TestsSpotifyAPI(unittest.TestCase):
         )
 
         self.assertEqual(token_obj.token, 'ABCD1234')
-        self.assertEqual(token_obj._expira_em, 3600)
-        self.assertTrue(token_obj.valido)
+        self.assertEqual(token_obj._expires_in, 3600)
+        self.assertTrue(token_obj.valid)
 
     @patch('requests.post')
     @patch('requests.get')
     def test_search_artist(self, mock_get, mock_post):
         """
-        Testa se buscar_artista retorna corretamente o objeto Artista ao consultar a API do Spotify.
+        Tests if search_artist correctly returns the Artist object when querying the Spotify API.
         """
         mock_post.return_value.status_code = 200
         mock_post.return_value.json.return_value = {
@@ -61,11 +61,11 @@ class TestsSpotifyAPI(unittest.TestCase):
             }
         }
 
-        api = SpotifyAPI('meu_client_id', 'meu_client_secret')
-        artista = api.buscar_artista('Linkin Park')
+        api = SpotifyAPI('my_client_id', 'my_client_secret')
+        artist = api.search_artist('Linkin Park')
 
-        self.assertEqual(artista.nome, 'Linkin Park')
-        self.assertEqual(artista.id_artista, '123')
+        self.assertEqual(artist.name, 'Linkin Park')
+        self.assertEqual(artist.artist_id, '123')
 
         mock_get.assert_called_with(
             'https://api.spotify.com/v1/search',
@@ -77,7 +77,7 @@ class TestsSpotifyAPI(unittest.TestCase):
     @patch('requests.post')
     def test_search_top_tracks(self, mock_post, mock_get):
         """
-        Testa se buscar_top_tracks retorna corretamente as informacoes das faixas mais populares do artista.
+        Tests if search_top_tracks correctly returns the information of the artist's most popular tracks.
         """
         mock_post.return_value.status_code = 200
         mock_post.return_value.json.return_value = {
@@ -103,87 +103,87 @@ class TestsSpotifyAPI(unittest.TestCase):
             ]
         }
 
-        api = SpotifyAPI('meu_client_id', 'meu_client_secret')
-        artista = Artista(nome = 'Linkin Park', id_artista = 'id_do_artista')
-        resultado = api.buscar_top_tracks(artista)
+        api = SpotifyAPI('my_client_id', 'my_client_secret')
+        artist = Artist(name = 'Linkin Park', artist_id= 'artist_id')
+        result = api.search_top_tracks(artist)
 
         mock_get.assert_called_with(
-            'https://api.spotify.com/v1/artists/id_do_artista/top-tracks',
+            'https://api.spotify.com/v1/artists/artist_id/top-tracks',
             headers = {'Authorization': f'Bearer {api.token}'}
         )
 
-        self.assertEqual(resultado['artista'].nome, 'Linkin Park')
-        self.assertEqual(resultado['artista'].id_artista, 'id_do_artista')
-        self.assertEqual(len(resultado['top_tracks']), 2)
+        self.assertEqual(result['artist'].name, 'Linkin Park')
+        self.assertEqual(result['artist'].artist_id, 'artist_id')
+        self.assertEqual(len(result['top_tracks']), 2)
 
-        track1 = resultado['top_tracks'][0]
+        track1 = result['top_tracks'][0]
         self.assertIsInstance(track1, Track)
-        self.assertEqual(track1.nome_track, 'In the End')
-        self.assertEqual(track1.popularidade, 91)
+        self.assertEqual(track1.track_name, 'In the End')
+        self.assertEqual(track1.popularity, 91)
         self.assertEqual(track1.album, 'Hybrid Theory')
-        self.assertEqual(track1.id_track, '123456abcde')
+        self.assertEqual(track1.track_id, '123456abcde')
 
-        track2 = resultado['top_tracks'][1]
+        track2 = result['top_tracks'][1]
         self.assertIsInstance(track2, Track)
-        self.assertEqual(track2.nome_track, 'Numb')
-        self.assertEqual(track2.popularidade, 90)
+        self.assertEqual(track2.track_name, 'Numb')
+        self.assertEqual(track2.popularity, 90)
         self.assertEqual(track2.album, 'Meteora')
-        self.assertEqual(track2.id_track, '654321ebca')
+        self.assertEqual(track2.track_id, '654321ebca')
  
 
-class TestesBancoDeDados(unittest.TestCase):
+class TestsDatabase(unittest.TestCase):
     def setUp(self):
-        self.banco = BancoDeDados()
+        self.database = Database()
 
     def test_check_data_date(self):
         """
-        Testa a funcao checagem_data_dados.
-        Limpa o banco antes do teste (ainda tem o csv), cria artistas no banco,
-        cria JSON temporario, insere dados de linkin park hoje, remove JSON temporario e limpa o banco.
+        Tests the check_data_date function.
+        Clears the database before test (still has csv), creates artists in database,
+        creates temporary JSON, inserts Linkin Park data today, removes temporary JSON and clears database.
         
         """
         session.query(TopTracks).delete()
-        session.query(Artistas).delete()
+        session.query(Artists).delete()
         session.commit()
 
-        artista1 = Artistas(id_artista = '1', nome_artista = 'Linkin Park')
-        artista2 = Artistas(id_artista = '2', nome_artista = 'Disturbed')
-        session.add_all([artista1, artista2])
+        artist1 = Artists(artist_id = '1', artist_name = 'Linkin Park')
+        artist2 = Artists(artist_id = '2', artist_name = 'Disturbed')
+        session.add_all([artist1, artist2])
         session.commit()
 
-        self.json_path = 'artistas_test.json'
+        self.json_path = 'artists_test.json'
         with open(self.json_path, 'w', encoding='utf-8') as f:
                   json.dump(['Linkin Park', 'Disturbed'], f)
 
-        hoje = str(date.today())
+        today = str(date.today())
         track = TopTracks(
-             nome_musica = 'In the End',
-             id_musica = 'abc',
-             popularidade = 90,
+             song_name = 'In the End',
+             song_id = 'abc',
+             popularity = 90,
              album = 'Hybrid Theory',
-             id_artista = '1',
-             data_insercao = hoje
+             artist_id = '1',
+             insertion_date = today
         )
         session.add(track)
         session.commit()
 
-        resultado = self.banco.checagem_data_dados(self.json_path)
-        self.assertEqual(resultado, ['Disturbed'])
+        result = self.database.check_data_date(self.json_path)
+        self.assertEqual(result, ['Disturbed'])
 
         if os.path.exists(self.json_path):
             os.remove(self.json_path)
         session.query(TopTracks).delete()
-        session.query(Artistas).delete()
+        session.query(Artists).delete()
         session.commit()
 
     def test_create_csv(self):
         """
-        Testa se criar_csv gera o arquivo CSV corretamente a partir dos resultados.
+        Tests if create_csv generates the CSV file correctly from the results.
         """
-        artista = Artista(nome = 'Linkin Park', id_artista = '1')
-        track1 = Track(nome_track = 'In The End', id_track = 'abc', popularidade = 91, album='Hybrid Theory')
-        track2 = Track(nome_track='Numb', id_track='def', popularidade=90, album='Meteora')
-        resultados = [{'artista': artista, 'top_tracks': [track1, track2]}]
+        artist = Artist(name = 'Linkin Park', artist_id = '1')
+        track1 = Track(track_name = 'In The End', track_id = 'abc', popularity = 91, album='Hybrid Theory')
+        track2 = Track(track_name='Numb', track_id='def', popularity=90, album='Meteora')
+        results = [{'artist': artist, 'top_tracks': [track1, track2]}]
 
         m = mock_open()
         with patch('builtins.open', m):
@@ -192,7 +192,7 @@ class TestesBancoDeDados(unittest.TestCase):
                   mock_writer.writeheader = lambda: None
                   mock_writer.writerow = lambda row: None
 
-                  self.banco.criar_csv(resultados)
+                  self.database.create_csv(results)
 
                   mock_writer_class.assert_called()
 
@@ -201,11 +201,11 @@ class TestesBancoDeDados(unittest.TestCase):
 
     def test_insert_csv_data_to_database(self):
         """
-        Testa se inserir_dados_csv_no_banco insere corretamente os dados do CSV no banco.
+        Tests if insert_csv_data_to_database correctly inserts CSV data into the database.
         """
-        with patch('os.listdir', return_value = ['teste.csv']):
+        with patch('os.listdir', return_value = ['test.csv']):
              csv_content = (
-            "nome_artista;id_artista;nome_musica;id_musica;popularidade;album;data_insercao\n"
+            "artist_name;artist_id;song_name;song_id;popularity;album;insertion_date\n"
             "Linkin Park;1;In the End;abc;91;Hybrid Theory;2024-07-22\n"
             "Linkin Park;1;Numb;def;90;Meteora;2024-07-22\n"
              )
@@ -214,128 +214,128 @@ class TestesBancoDeDados(unittest.TestCase):
              with patch('builtins.open', m):
                   with patch('csv.DictReader', wraps = csv.DictReader) as mock_reader:
                     session.query(TopTracks).delete()
-                    session.query(Artistas).delete()
+                    session.query(Artists).delete()
                     session.commit()
 
-                    self.banco.inserir_dados_csv_no_banco('dados')
+                    self.database.insert_csv_data_to_database('data')
 
-                    artistas = session.query(Artistas).filter_by(id_artista = '1').all()
-                    tracks = session.query(TopTracks).filter_by(id_artista = '1').all()
+                    artists = session.query(Artists).filter_by(artist_id = '1').all()
+                    tracks = session.query(TopTracks).filter_by(artist_id = '1').all()
 
-                    self.assertEqual(len(artistas), 1)
-                    self.assertEqual(artistas[0].nome_artista, 'Linkin Park')
+                    self.assertEqual(len(artists), 1)
+                    self.assertEqual(artists[0].artist_name, 'Linkin Park')
                     self.assertEqual(len(tracks), 2)
-                    nomes_musicas = [t.nome_musica for t in tracks]
-                    self.assertIn('In the End', nomes_musicas)
-                    self.assertIn('Numb', nomes_musicas)
+                    song_names = [t.song_name for t in tracks]
+                    self.assertIn('In the End', song_names)
+                    self.assertIn('Numb', song_names)
 
                     session.query(TopTracks).delete()
-                    session.query(Artistas).delete()
+                    session.query(Artists).delete()
                     session.commit()
 
-    def test_query_artist_data(self):
+    def test_query_artists_data(self):
         """
-        Testa se consultar_dados_artistas retorna os artistas corretos para diferentes filtros.
+        Tests if query_artists_data returns the correct artists for different filters.
         """
-        session.query(Artistas).delete()
+        session.query(Artists).delete()
         session.commit()
 
-        artista1 = Artistas(id_artista = '1', nome_artista = 'Linkin Park')
-        artista2 = Artistas(id_artista = '2', nome_artista = 'Disturbed')
-        artista3 = Artistas(id_artista = '3', nome_artista = 'Metallica')
-        session.add_all([artista1, artista2, artista3])
+        artist1 = Artists(artist_id = '1', artist_name = 'Linkin Park')
+        artist2 = Artists(artist_id = '2', artist_name = 'Disturbed')
+        artist3 = Artists(artist_id = '3', artist_name = 'Metallica')
+        session.add_all([artist1, artist2, artist3])
         session.commit()
 
-        resultado = self.banco.consultar_dados_artistas(['linkin park'])
-        self.assertEqual(len(resultado), 1)
-        self.assertEqual(resultado[0].id_artista, '1')
-        self.assertEqual(resultado[0].nome_artista, 'Linkin Park')
+        result = self.database.query_artists_data(['linkin park'])
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].artist_id, '1')
+        self.assertEqual(result[0].artist_name, 'Linkin Park')
 
-        resultado = self.banco.consultar_dados_artistas(['2'])
-        self.assertEqual(len(resultado), 1)
-        self.assertEqual(resultado[0].nome_artista, 'Disturbed')
+        result = self.database.query_artists_data(['2'])
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].artist_name, 'Disturbed')
 
-        resultado = self.banco.consultar_dados_artistas(['metallica', 'LINKIN PARK'])
-        ids = [a.id_artista for a in resultado]
+        result = self.database.query_artists_data(['metallica', 'LINKIN PARK'])
+        ids = [a.artist_id for a in result]
         self.assertIn('1', ids)
         self.assertIn('3', ids)
 
-        session.query(Artistas).delete()
+        session.query(Artists).delete()
         session.commit()
 
     def test_query_top_tracks_data(self):
         """
-        Testa se consultar_dados_top_tracks retorna as tracks mais populares da data mais recente.
+        Tests if query_top_tracks_data returns the most popular tracks from the most recent date.
         """
         session.query(TopTracks).delete()
-        session.query(Artistas).delete()
+        session.query(Artists).delete()
         session.commit()
 
-        artista = Artistas(id_artista = '1', nome_artista = 'Linkin Park')
-        session.add(artista)
+        artist = Artists(artist_id = '1', artist_name = 'Linkin Park')
+        session.add(artist)
         session.commit()
 
         track1 = TopTracks(
-            nome_musica = 'In The End',
-            id_musica = 'abc',
-            popularidade = 91,
+            song_name = 'In The End',
+            song_id = 'abc',
+            popularity = 91,
             album = 'Hybrid Theory',
-            id_artista = '1',
-            data_insercao = '2024-07-22'
+            artist_id = '1',
+            insertion_date = '2024-07-22'
         )
         track2 = TopTracks(
-            nome_musica = 'Numb',
-            id_musica = 'def',
-            popularidade = 90,
+            song_name = 'Numb',
+            song_id = 'def',
+            popularity = 90,
             album = 'Meteora',
-            id_artista = '1',
-            data_insercao = '2024-07-22'
+            artist_id = '1',
+            insertion_date = '2024-07-22'
         )
         track3 = TopTracks(
-            nome_musica = 'Papercut',
-            id_musica = 'ghi',
-            popularidade = 80,
+            song_name = 'Papercut',
+            song_id = 'ghi',
+            popularity = 80,
             album = 'Hybrid Theory',
-            id_artista = '1',
-            data_insercao = '2024-07-21'
+            artist_id = '1',
+            insertion_date = '2024-07-21'
         )
         session.add_all([track1, track2, track3])
         session.commit()
 
-        resultado = self.banco.consultar_dados_top_tracks('1')
+        result = self.database.query_top_tracks_data('1')
 
-        self.assertEqual(len(resultado), 2)
-        self.assertEqual(resultado[0].nome_musica, 'In The End')
-        self.assertEqual(resultado[1].nome_musica, 'Numb')
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0].song_name, 'In The End')
+        self.assertEqual(result[1].song_name, 'Numb')
 
         session.query(TopTracks).delete()
-        session.query(Artistas).delete()
+        session.query(Artists).delete()
         session.commit()
 
     def test_display_artists(self):
         """
-        Testa se exibir_artistas imprime corretamente todos os artistas cadastrados no banco.
+        Tests if display_artists correctly prints all registered artists in the database.
         """
         session.query(TopTracks).delete()
-        session.query(Artistas).delete()
+        session.query(Artists).delete()
         session.commit()
 
-        artista1 = Artistas(id_artista = '1', nome_artista = 'Linkin Park')
-        artista2 = Artistas(id_artista = '2', nome_artista = 'Disturbed')
-        session.add_all([artista1, artista2])
+        artist1 = Artists(artist_id = '1', artist_name = 'Linkin Park')
+        artist2 = Artists(artist_id = '2', artist_name = 'Disturbed')
+        session.add_all([artist1, artist2])
         session.commit()
 
         f = StringIO()
         with redirect_stdout(f):
-            self.banco.exibir_artistas()
+            self.database.display_artists()
         output = f.getvalue()
 
         self.assertIn('Linkin Park', output)
         self.assertIn('Disturbed', output)
-        self.assertIn('Todos os artistas do banco', output)
+        self.assertIn('All artists in database', output)
 
         session.query(TopTracks).delete()
-        session.query(Artistas).delete()
+        session.query(Artists).delete()
         session.commit()
 
 if __name__ == '__main__':
