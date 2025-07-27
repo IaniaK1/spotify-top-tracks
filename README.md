@@ -1,11 +1,11 @@
 # Spotify Top Tracks CLI
 
-Este projeto realiza a coleta, atualização e consulta de dados de artistas e suas top tracks do Spotify, salvando os resultados em banco de dados SQLite e arquivos CSV. A consulta pode ser feita por nome ou ID do artista, retornando as músicas mais populares do dia mais recente.
+Este projeto realiza a coleta, atualização e consulta de dados de artistas e suas top tracks do Spotify, salvando os resultados em banco de dados SQLite (via SQLAlchemy ORM) e arquivos CSV. A consulta pode ser feita por nome ou ID do artista, retornando as músicas mais populares do dia mais recente.
 
 ## Funcionalidades
 
 - Busca e atualização automática dos dados dos artistas via API do Spotify.
-- Armazenamento dos dados em banco SQLite e CSV.
+- Armazenamento dos dados em banco SQLite utilizando SQLAlchemy ORM e arquivos CSV.
 - Consulta de artistas e suas top tracks por nome ou ID (case-insensitive), ordenadas por popularidade.
 - Retorno estruturado em formato JSON, pronto para uso em APIs ou análise.
 
@@ -89,6 +89,6 @@ Abra este arquivo no navegador para visualizar a cobertura dos testes.
 
 ## Observações
 
-- Os dados são salvos em `/dados/spotify_data.db` e arquivos CSV na pasta `/dados`.
+- Os dados são salvos em `/dados/spotify_data.db` (utilizando SQLAlchemy ORM) e arquivos CSV na pasta `/dados`.
 - O projeto segue boas práticas de separação de camadas (infraestrutura, domínio, aplicação e interface).
 - Os testes utilizam mocks para simular chamadas à API, manipulação de arquivos e operações no banco de dados, garantindo rapidez e confiabilidade.
