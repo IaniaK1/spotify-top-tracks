@@ -7,38 +7,38 @@ load_dotenv()
 
 class SpotifyAPI:
     """
-    Classe para a interação com a API do Spotify.
+    Class for Spotify API interaction.
     """
     def __init__(self, spotify_client_id=None, spotify_client_secret=None):
         self.url = 'https://api.spotify.com/v1'
         self.spotify_client_id = spotify_client_id or os.environ.get('spotify_client_id')
         self.spotify_client_secret = spotify_client_secret or os.environ.get('spotify_client_secret')
         self._token_spotify = None
-        self._token_spotify = self._solicitar_token()
+        self._token_spotify = self._request_token()
 
     @property
     def token(self):
         """
-        Retorna um token de acesso válido para a API do Spotify.
+        Returns a valid access token for the Spotify API.
 
-        Se o token atual estiver expirado ou não existir, solicita um novo automaticamente.
+        If the current token is expired or doesn't exist, automatically requests a new one.
 
         Returns:
-            str: Token de acesso valido.
+            str: Valid access token.
         """
-        if not self._token_spotify or not self._token_spotify.valido:
-            self._token_spotify = self._solicitar_token()
+        if not self._token_spotify or not self._token_spotify.valid:
+            self._token_spotify = self._request_token()
         return self._token_spotify.token
 
     def _request_token(self):
         """
-        Solicita e retorna um novo token de acesso a API do Spotify o fluxo client credentials.
+        Requests and returns a new access token for the Spotify API using client credentials flow.
 
         Returns:
-            str: Token de acesso valido para autenticacao nas requisicoes a API do Spotify.
+            Token: Valid access token for authentication in Spotify API requests.
         """
         try:
-            url_token = 'https://accounts.spotify.com/api/token'
+            token_url = 'https://accounts.spotify.com/api/token'
 
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
@@ -48,25 +48,25 @@ class SpotifyAPI:
                 'client_secret': f'{self.spotify_client_secret}'
             }
             
-            requisicao = requests.post(url_token, headers=headers, data=body)
-            requisicao.raise_for_status()
+            request = requests.post(token_url, headers=headers, data=body)
+            request.raise_for_status()
 
-            token = requisicao.json()['access_token']
-            expira_em = requisicao.json()['expires_in']
-            return Token(token, expira_em)
+            token = request.json()['access_token']
+            expires_in = request.json()['expires_in']
+            return Token(token, expires_in)
         except Exception as e:
-            print(f'Erro ao solicitar token: {e}')
+            print(f'Error requesting token: {e}')
             return None
 
-    def search_artist(self, artista):
+    def search_artist(self, artist):
         """
-        Busca o ID de um artista pelo nome usando a API do Spotify.
+        Searches for an artist ID by name using the Spotify API.
 
         Args: 
-            artista (str): Nome do artista.
+            artist (str): Artist name.
 
         Returns:
-            Artista: Objeto Artista encontrado.
+            Artist: Found Artist object.
         """
         try:
             url = self.url + f'/search'
@@ -75,49 +75,49 @@ class SpotifyAPI:
                 'Authorization': f'Bearer {self.token}'
             }
 
-            requisicao = requests.get(url, headers=headers, params={'q':artista,'type': 'artist','limit': 1})
+            request = requests.get(url, headers=headers, params={'q': artist, 'type': 'artist', 'limit': 1})
 
-            requisicao.raise_for_status()
-            resultado = requisicao.json()
+            request.raise_for_status()
+            result = request.json()
 
-            dados_artista = resultado['artists']['items'][0]
+            artist_data = result['artists']['items'][0]
         except Exception as e:
-            print(f'Erro ao buscar artista {artista}: {e}')
+            print(f'Error searching for artist {artist}: {e}')
             return
 
-        return Artista(nome=dados_artista['name'], id_artista=dados_artista['id'])
+        return Artist(name=artist_data['name'], artist_id=artist_data['id'])
     
-    def search_top_tracks(self, artista: Artista):
+    def search_top_tracks(self, artist: Artist):
         """
-        Busca as faixas mais populares de um artista usando a API do Spotify.
+        Searches for an artist's most popular tracks using the Spotify API.
 
         Args:
-            artista (Artista): Objeto Artista.
+            artist (Artist): Artist object.
 
         Returns:
-            dict: Dicionário contendo o artista e uma lista de suas top tracks (objetos Track).
+            dict: Dictionary containing the artist and a list of their top tracks (Track objects).
         """
         try:
-            url = self.url + f'/artists/{artista.id_artista}/top-tracks'
+            url = self.url + f'/artists/{artist.artist_id}/top-tracks'
 
             headers = {
                 'Authorization': f'Bearer {self.token}'
             }
 
-            requisicao = requests.get(url, headers=headers)
-            requisicao.raise_for_status()
-            resposta = requisicao.json()
+            request = requests.get(url, headers=headers)
+            request.raise_for_status()
+            response = request.json()
 
             tracks = []
-            for track in resposta['tracks']:
+            for track in response['tracks']:
                 tracks.append(Track(
-                    nome_track=track['name'],
-                    id_track=track['id'],
-                    popularidade=track['popularity'],
+                    track_name=track['name'],
+                    track_id=track['id'],
+                    popularity=track['popularity'],
                     album=track['album']['name']
                 ))
         except Exception as e:
-            print(f'Erro ao buscar tracks do artista {artista}: {e}')
+            print(f'Error searching tracks for artist {artist}: {e}')
             return
 
-        return {'artista': artista, 'top_tracks': tracks}
+        return {'artist': artist, 'top_tracks': tracks}
