@@ -1,6 +1,6 @@
 import os
 import requests
-from dominio.modelos import Token, Artista, Track
+from domain.models import Token, Artist, Track
 from dotenv import load_dotenv
 load_dotenv()
 

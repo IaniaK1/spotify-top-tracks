@@ -3,9 +3,9 @@ from unittest.mock import patch, mock_open
 import json
 import os
 import csv
-from infraestrutura.api import SpotifyAPI
-from infraestrutura.bancodedados import BancoDeDados, session, Artistas, TopTracks
-from dominio.modelos import Artista, Track, Token
+from infrastructure.api import SpotifyAPI
+from infrastructure.database import Database, session, Artistas, TopTracks
+from domain.models import Artist, Track, Token
 from datetime import date
 from io import StringIO
 from contextlib import redirect_stdout

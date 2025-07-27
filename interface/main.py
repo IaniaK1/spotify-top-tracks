@@ -1,8 +1,8 @@
 import argparse
-from infraestrutura.api import SpotifyAPI
-from infraestrutura.bancodedados import BancoDeDados
-from aplicacao.atualizardados import AtualizarDadosUseCase
-from aplicacao.consultardados import ConsultarDadosUseCase
+from infrastructure.api import SpotifyAPI
+from infrastructure.database import Database
+from application.update_data import UpdateDataUseCase
+from application.query_data import QueryDataUseCase
 
 
 def main(spotify_client_id, spotify_client_secret, artistas_json, filtro):
