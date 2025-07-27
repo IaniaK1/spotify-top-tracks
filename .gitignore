@@ -3,3 +3,4 @@ search_results*.csv
 .coverage
 /htmlcov
 /data
+__pycache__/

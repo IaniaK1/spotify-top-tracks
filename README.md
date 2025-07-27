@@ -25,7 +25,17 @@ This project performs data collection, updating, and querying of artists and the
 ## Setup
 
 1. **Environment variables:**  
-   Copy `.env.example` to `.env` and fill in your Spotify credentials.
+   Copy `.env.example` to `.env` and fill in your Spotify credentials:
+   
+   ```sh
+   cp .env.example .env
+   ```
+   
+   Edit `.env` file:
+   ```env
+   spotify_client_id=your_spotify_client_id_here
+   spotify_client_secret=your_spotify_client_secret_here
+   ```
 
 2. **Artists file:**  
    Edit the `artists.json` file with the names of the artists you want to search.
@@ -37,11 +47,31 @@ This project performs data collection, updating, and querying of artists and the
 Run the command below to update data and query artists:
 
 ```sh
-python -m interface.main --artistas_json artists.json --filter "Linkin Park,System Of A Down"
+python -m interface.main --artists_json artists.json --filter "Linkin Park,System Of A Down"
 ```
 
 - The `--filter` parameter accepts artist names or IDs, separated by comma.
 - If you don't provide the filter, it will be requested via input.
+
+### Query existing data only
+
+To query existing data without updating from Spotify API:
+
+```sh
+python -m interface.main --filter "Linkin Park"
+```
+
+This will use data already stored in the database.
+
+### Alternative: Pass credentials via CLI
+
+You can also pass Spotify credentials directly via command line:
+
+```sh
+python -m interface.main --id YOUR_CLIENT_ID --secret YOUR_CLIENT_SECRET --artists_json artists.json
+```
+
+**Note:** Using `.env` file is recommended for security.
 
 ### Example response
 
@@ -57,6 +87,18 @@ The songs returned in `top_tracks` are ordered from most popular to least popula
         "song_id": "60a0Rd6pjrkxjPbaKzXjfq",
         "popularity": 92,
         "album": "Hybrid Theory (Bonus Edition)",
+        "insertion_date": "2025-07-17 09:09:44.331729"
+      }
+    ]
+  },
+  "Disturbed": {
+    "id": "3TOqt5oJwL9BE2NG9MEwDa",
+    "top_tracks": [
+      {
+        "song_name": "Down with the Sickness",
+        "song_id": "0WqIKmW4BTrj3eJFmnCKMv",
+        "popularity": 88,
+        "album": "The Sickness",
         "insertion_date": "2025-07-17 09:09:44.331729"
       }
     ]
