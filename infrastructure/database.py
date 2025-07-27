@@ -5,198 +5,198 @@ import csv
 from datetime import date, timedelta, datetime
 import json
 
-os.makedirs('dados', exist_ok=True)
-db = create_engine("sqlite:///dados/spotify_data.db")
+os.makedirs('data', exist_ok=True)
+db = create_engine("sqlite:///data/spotify_data.db")
 Session = sessionmaker(bind=db)
 session = Session()
 
 Base = declarative_base()
 
-class Artistas(Base):
-    __tablename__ = 'artistas'
-    id_artista = Column(String, primary_key=True)
-    nome_artista = Column(String)
+class Artists(Base):
+    __tablename__ = 'artists'
+    artist_id = Column(String, primary_key=True)
+    artist_name = Column(String)
 
     def __repr__(self):
-        return f'<Artista(id_artista="{self.id_artista}", nome_artista="{self.nome_artista}")>'
+        return f'<Artist(artist_id="{self.artist_id}", artist_name="{self.artist_name}")>'
 
 class TopTracks(Base):
     __tablename__ = 'top_tracks'
-    nome_musica = Column(String)
-    id_musica = Column(String)
-    popularidade = Column(Integer)
+    song_name = Column(String)
+    song_id = Column(String)
+    popularity = Column(Integer)
     album = Column(String)
-    id_artista = Column(String, ForeignKey('artistas.id_artista'))
-    data_insercao = Column(String)
-    __table_args__ = (PrimaryKeyConstraint('id_musica', 'data_insercao'),)
+    artist_id = Column(String, ForeignKey('artists.artist_id'))
+    insertion_date = Column(String)
+    __table_args__ = (PrimaryKeyConstraint('song_id', 'insertion_date'),)
 
     def __repr__(self):
-        return (f'<TopTracks(nome_musica="{self.nome_musica}", id_musica="{self.id_musica}", '
-                f'popularidade={self.popularidade}, album="{self.album}", '
-                f'id_artista="{self.id_artista}", data_insercao="{self.data_insercao}")>')
+        return (f'<TopTracks(song_name="{self.song_name}", song_id="{self.song_id}", '
+                f'popularity={self.popularity}, album="{self.album}", '
+                f'artist_id="{self.artist_id}", insertion_date="{self.insertion_date}")>')
 
 Base.metadata.create_all(bind=db)
 
 class Database:
-    def check_data_date(self, artista_json):
+    def check_data_date(self, artists_json):
         """
-        Verifica se existem dados para cada artista presente no JSON para a data atual.
+        Checks if data exists for each artist in the JSON for the current date.
 
         Returns:
-            list: Lista de artistas sem dados atualizados para o dia atual.
+            list: List of artists without updated data for the current day.
         """
         try:
-            with open(artista_json, 'r', encoding='utf-8') as f:
-                artistas = json.load(f)
+            with open(artists_json, 'r', encoding='utf-8') as f:
+                artists = json.load(f)
         except Exception as e:
-            raise Exception(f'Erro ao processar ou ler o arquivo {artista_json}: {e}')
+            raise Exception(f'Error processing or reading file {artists_json}: {e}')
 
         try:
-            hoje = str(date.today().strftime('%Y-%m-%d'))
-            artistas_sem_dados = list()
+            today = str(date.today().strftime('%Y-%m-%d'))
+            artists_without_data = list()
 
-            for artista in artistas:
-                existe = session.query(TopTracks).join(Artistas).filter(
-                    func.lower(Artistas.nome_artista) == artista.lower(),
-                    TopTracks.data_insercao.like(f'{hoje}%')
+            for artist in artists:
+                exists = session.query(TopTracks).join(Artists).filter(
+                    func.lower(Artists.artist_name) == artist.lower(),
+                    TopTracks.insertion_date.like(f'{today}%')
                 ).first()
-                if not existe:
-                    artistas_sem_dados.append(artista)
+                if not exists:
+                    artists_without_data.append(artist)
 
 
         except Exception as e:
-            raise Exception(f'Erro ao consultar o banco de dados: {e}')
+            raise Exception(f'Error querying database: {e}')
         
-        return artistas_sem_dados
+        return artists_without_data
 
-    def create_csv(self, resultados):
+    def create_csv(self, results):
         """
-        Cria um arquivo CSV com os resultados das tracks dos artistas.
+        Creates a CSV file with the results of artists' tracks.
 
         Args:
-            resultados (list): Lista de dicionários contendo informacoes dos artistas e tracks.
+            results (list): List of dictionaries containing artist and track information.
         """
         try:
-            subpasta = 'dados'
-            caminho_completo = os.path.join(subpasta, f'resultado_pesquisas_{date.today()}.csv')
-            arquivo_existe = os.path.exists(caminho_completo)
-            escrever_header = not arquivo_existe or os.path.getsize(caminho_completo) == 0
+            subfolder = 'data'
+            full_path = os.path.join(subfolder, f'search_results_{date.today()}.csv')
+            file_exists = os.path.exists(full_path)
+            write_header = not file_exists or os.path.getsize(full_path) == 0
 
-            data_insecao_atual = datetime.now()
+            current_insertion_date = datetime.now()
 
-            with open(caminho_completo, 'a', newline='', encoding='utf-8') as f:
-                colunas = ['nome_artista', 'id_artista', 'nome_musica', 'id_musica', 'popularidade', 'album', 'data_insercao']
+            with open(full_path, 'a', newline='', encoding='utf-8') as f:
+                columns = ['artist_name', 'artist_id', 'song_name', 'song_id', 'popularity', 'album', 'insertion_date']
 
-                writer = csv.DictWriter(f, fieldnames=colunas, delimiter=';')
+                writer = csv.DictWriter(f, fieldnames=columns, delimiter=';')
 
-                if escrever_header:
+                if write_header:
                     writer.writeheader()
 
-                for artista_info in resultados:
-                    artista = artista_info['artista']
-                    for track in artista_info['top_tracks']:
+                for artist_info in results:
+                    artist = artist_info['artist']
+                    for track in artist_info['top_tracks']:
                         writer.writerow({
-                            'nome_artista': artista.nome,
-                            'id_artista': artista.id_artista,
-                            'nome_musica': track.nome_track,
-                            'id_musica': track.id_track,
-                            'popularidade': track.popularidade,
+                            'artist_name': artist.name,
+                            'artist_id': artist.artist_id,
+                            'song_name': track.track_name,
+                            'song_id': track.track_id,
+                            'popularity': track.popularity,
                             'album': track.album,
-                            'data_insercao': data_insecao_atual
+                            'insertion_date': current_insertion_date
                         })
         except Exception as e:
             print(e)
             return
 
-    def insert_csv_data_to_database(self, pasta_csv='dados'):
+    def insert_csv_data_to_database(self, csv_folder='data'):
         """
-        Lê todos os arquivos CSV da pasta especificada e insere os dados no banco de dados.
+        Reads all CSV files from the specified folder and inserts data into the database.
 
         Args:
-            pasta_csv (str): Caminho da pasta onde estão os arquivos CSV. Padrão é 'dados'.
+            csv_folder (str): Path to the folder containing CSV files. Default is 'data'.
         """
         try:
-            for arquivo in os.listdir(pasta_csv):
-                if arquivo.endswith('.csv'):
-                    caminho_completo = os.path.join(pasta_csv, arquivo)
-                    with open(caminho_completo, encoding='utf-8') as f:
+            for file in os.listdir(csv_folder):
+                if file.endswith('.csv'):
+                    full_path = os.path.join(csv_folder, file)
+                    with open(full_path, encoding='utf-8') as f:
                         reader = csv.DictReader(f, delimiter=';')
                         if reader.fieldnames is None:
-                            raise RuntimeError(f'O arquivo CSV {arquivo} está vazio ou sem cabeçalho.')
-                        linhas = list(reader)
-                        if not linhas:
-                            raise RuntimeError(f'O arquivo CSV {arquivo} está vazio.')
-                        for row in linhas:
-                            artista_obj = Artistas(
-                                id_artista = row['id_artista'],
-                                nome_artista=row['nome_artista']
+                            raise RuntimeError(f'CSV file {file} is empty or has no header.')
+                        rows = list(reader)
+                        if not rows:
+                            raise RuntimeError(f'CSV file {file} is empty.')
+                        for row in rows:
+                            artist_obj = Artists(
+                                artist_id=row['artist_id'],
+                                artist_name=row['artist_name']
                             )
-                            session.merge(artista_obj)
+                            session.merge(artist_obj)
 
                             track_obj = TopTracks(
-                                nome_musica=row['nome_musica'],
-                                id_musica=row['id_musica'],
-                                popularidade=int(row['popularidade']),
+                                song_name=row['song_name'],
+                                song_id=row['song_id'],
+                                popularity=int(row['popularity']),
                                 album=row['album'],
-                                id_artista=row['id_artista'],
-                                data_insercao=row['data_insercao']
+                                artist_id=row['artist_id'],
+                                insertion_date=row['insertion_date']
                             )
                             session.merge(track_obj)
                         session.commit()
         except Exception as e:
-            raise RuntimeError(f'Erro ao inserir dados do CSV {arquivo}: {e}')
+            raise RuntimeError(f'Error inserting CSV data from {file}: {e}')
 
-    def query_artist_data(self, filtro):
+    def query_artists_data(self, filter_list):
         """
-        Buscar artistas e suas top tracks no banco de dados pelo nome (case-insensitive) ou id exato.
+        Search for artists and their top tracks in the database by name (case-insensitive) or exact ID.
 
         Args:
-            filtro (list): Lista de nomes ou ids dos artistas.
+            filter_list (list): List of artist names or IDs.
 
         Return:
-            list: Lista de objetos Artistas encontrados.
+            list: List of found Artist objects.
         """
-        if not filtro:
-            return session.query(Artistas).all()
+        if not filter_list:
+            return session.query(Artists).all()
         
-        filtro_lower = [nome.lower() for nome in filtro]
+        filter_lower = [name.lower() for name in filter_list]
 
-        info_artistas = session.query(Artistas).filter(
-            (func.lower(Artistas.nome_artista).in_(filtro_lower)) |
-            (Artistas.id_artista.in_(filtro))
+        artists_info = session.query(Artists).filter(
+            (func.lower(Artists.artist_name).in_(filter_lower)) |
+            (Artists.artist_id.in_(filter_list))
         ).all()
 
-        return info_artistas
+        return artists_info
 
-    def query_top_tracks_data(self, id_artista):
+    def query_top_tracks_data(self, artist_id):
         """
-        Buscar top tracks e suas informacoes pelo id.
+        Search for top tracks and their information by ID.
 
         Args:
-            id_artista (str): ID do artista.
+            artist_id (str): Artist ID.
 
         Returns:
-            list: Lista de objetos TopTracks do artista, ordenadas por popularidade (decrescente).
+            list: List of TopTracks objects for the artist, ordered by popularity (descending).
         """
-        data_mais_recente = session.query(func.max(TopTracks.data_insercao)).filter(
-            TopTracks.id_artista == id_artista
+        most_recent_date = session.query(func.max(TopTracks.insertion_date)).filter(
+            TopTracks.artist_id == artist_id
         ).scalar()
 
         tracks = session.query(TopTracks).filter(
-            TopTracks.id_artista == id_artista,
-            TopTracks.data_insercao == data_mais_recente
-        ).order_by(TopTracks.popularidade.desc()).all()
+            TopTracks.artist_id == artist_id,
+            TopTracks.insertion_date == most_recent_date
+        ).order_by(TopTracks.popularity.desc()).all()
 
         return tracks
 
     def display_artists(self):
         """
-        Exibe todos os artistas cadastrados no banco, ordenados alfabeticamente.
-        Retorna True se houver artistas, False se não houver.
+        Displays all registered artists in the database, sorted alphabetically.
+        Returns True if there are artists, False if there are none.
         """
-        todos = self.consultar_dados_artistas([])
-        if not todos:
-            raise RuntimeError('Nenhum artista encontrado no banco. Execute com --artistas_json para atualizar os dados.')
-        print('\nTodos os artistas do banco:\n')
-        for artista in sorted(todos, key=lambda a: a.nome_artista.lower()):
-            print(f'{artista.id_artista} - {artista.nome_artista}')
+        all_artists = self.query_artists_data([])
+        if not all_artists:
+            raise RuntimeError('No artists found in database. Run with --artists_json to update data.')
+        print('\nAll artists in database:\n')
+        for artist in sorted(all_artists, key=lambda a: a.artist_name.lower()):
+            print(f'{artist.artist_id} - {artist.artist_name}')
