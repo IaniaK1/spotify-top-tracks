@@ -1,27 +1,27 @@
 class UpdateDataUseCase:
-    def __init__(self, spotify_api, checagem_data_dados, criar_csv, inserir_dados_csv_no_banco):
+    def __init__(self, spotify_api, check_data_date, create_csv, insert_csv_data_to_database):
         self.spotify_api = spotify_api
-        self.checagem_data_dados = checagem_data_dados
-        self.criar_csv = criar_csv
-        self.inserir_dados_csv_no_banco = inserir_dados_csv_no_banco
+        self.check_data_date = check_data_date
+        self.create_csv = create_csv
+        self.insert_csv_data_to_database = insert_csv_data_to_database
 
-    def execute(self, artistas_json):
-        artistas = self.checagem_data_dados(artistas_json)
-        if not artistas:
-            print('Dados já atualizados. Nenhuma nova pesquisa será executada.')
+    def execute(self, artists_json):
+        artists = self.check_data_date(artists_json)
+        if not artists:
+            print('Data already updated. No new search will be executed.')
             return
     
-        resultados = []
-        print('Pesquisando...')
-        for artista in artistas:
-            print(f'Pesquisando {artista}')
-            artista_obj = self.spotify_api.buscar_artista(artista)
-            print(f'Pesquisando tracks do artista {artista}')
-            artista_info = self.spotify_api.buscar_top_tracks(artista_obj)
-            resultados.append(artista_info)
+        results = []
+        print('Searching...')
+        for artist in artists:
+            print(f'Searching for {artist}')
+            artist_obj = self.spotify_api.search_artist(artist)
+            print(f'Searching tracks for artist {artist}')
+            artist_info = self.spotify_api.search_top_tracks(artist_obj)
+            results.append(artist_info)
 
-        self.criar_csv(resultados)
-        print(f'Pesquisa concluida. Arquivo salvo em /dados/resultado_pesquisas.csv.')
+        self.create_csv(results)
+        print(f'Search completed. File saved at /data/search_results.csv.')
 
-        self.inserir_dados_csv_no_banco()
-        print(f'Banco de dados criado com sucesso. Arquivo salvo em /dados/spotify_data.db.')
+        self.insert_csv_data_to_database()
+        print(f'Database created successfully. File saved at /data/spotify_data.db.')
