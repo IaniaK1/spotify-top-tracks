@@ -1,6 +1,5 @@
 .env
-resultado_pesquisas.csv
+search_results*.csv
 .coverage
 /htmlcov
 /data
-/excalidraw
