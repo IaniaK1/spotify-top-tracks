@@ -1,51 +1,51 @@
 # Spotify Top Tracks CLI
 
-Este projeto realiza a coleta, atualização e consulta de dados de artistas e suas top tracks do Spotify, salvando os resultados em banco de dados SQLite (via SQLAlchemy ORM) e arquivos CSV. A consulta pode ser feita por nome ou ID do artista, retornando as músicas mais populares do dia mais recente.
+This project performs data collection, updating, and querying of artists and their top tracks from Spotify, saving results to SQLite database (via SQLAlchemy ORM) and CSV files. Queries can be made by artist name or ID, returning the most popular songs from the most recent day.
 
-## Funcionalidades
+## Features
 
-- Busca e atualização automática dos dados dos artistas via API do Spotify.
-- Armazenamento dos dados em banco SQLite utilizando SQLAlchemy ORM e arquivos CSV.
-- Consulta de artistas e suas top tracks por nome ou ID (case-insensitive), ordenadas por popularidade.
-- Retorno estruturado em formato JSON, pronto para uso em APIs ou análise.
+- Automatic search and data updating of artists via Spotify API.
+- Data storage in SQLite database using SQLAlchemy ORM and CSV files.
+- Query artists and their top tracks by name or ID (case-insensitive), ordered by popularity.
+- Structured JSON return format, ready for API usage or analysis.
 
-## Arquitetura do Projeto
+## Project Architecture
 
-![Diagrama da Arquitetura](arquitetura.png)
+![Architecture Diagram](architecture.png)
 
-## Pré-requisitos
+## Prerequisites
 
 - Python 3.10+
-- [Spotify Developer Account](https://developer.spotify.com/) para obter Client ID e Secret
-- Instalar dependências:
+- [Spotify Developer Account](https://developer.spotify.com/) to obtain Client ID and Secret
+- Install dependencies:
   ```sh
   pip install sqlalchemy requests python-dotenv coverage
   ```
 
-## Configuração
+## Setup
 
-1. **Variáveis de ambiente:**  
-   Copie `.env.example` para `.env` e preencha com suas credenciais do Spotify.
+1. **Environment variables:**  
+   Copy `.env.example` to `.env` and fill in your Spotify credentials.
 
-2. **Arquivo de artistas:**  
-   Edite o arquivo `artistas.json` com os nomes dos artistas que deseja pesquisar.
+2. **Artists file:**  
+   Edit the `artists.json` file with the names of the artists you want to search.
 
-## Como Usar
+## How to Use
 
-### Atualizar e consultar dados
+### Update and query data
 
-Execute o comando abaixo para atualizar os dados e consultar artistas:
+Run the command below to update data and query artists:
 
 ```sh
-python -m interface.main --artistas_json artistas.json --filtro "Linkin Park,System Of A Down"
+python -m interface.main --artistas_json artists.json --filter "Linkin Park,System Of A Down"
 ```
 
-- O parâmetro `--filtro` aceita nomes ou ids de artistas, separados por vírgula.
-- Se não passar o filtro, será solicitado via input.
+- The `--filter` parameter accepts artist names or IDs, separated by comma.
+- If you don't provide the filter, it will be requested via input.
 
-### Exemplo de retorno
+### Example response
 
-As músicas retornadas em `top_tracks` estão ordenadas da mais popular para a menos popular, de acordo com a popularidade no Spotify.
+The songs returned in `top_tracks` are ordered from most popular to least popular, according to Spotify popularity.
 
 ```json
 {
@@ -53,42 +53,42 @@ As músicas retornadas em `top_tracks` estão ordenadas da mais popular para a m
     "id": "6XyY86QOPPrYVGvF9ch6wz",
     "top_tracks": [
       {
-        "nome_musica": "In the End",
-        "id_musica": "60a0Rd6pjrkxjPbaKzXjfq",
-        "popularidade": 92,
+        "song_name": "In the End",
+        "song_id": "60a0Rd6pjrkxjPbaKzXjfq",
+        "popularity": 92,
         "album": "Hybrid Theory (Bonus Edition)",
-        "data_insercao": "2025-07-17 09:09:44.331729"
+        "insertion_date": "2025-07-17 09:09:44.331729"
       }
     ]
   }
 }
 ```
 
-## Testes
+## Tests
 
-### Executando os testes unitários
+### Running unit tests
 
-Para rodar todos os testes:
+To run all tests:
 
 ```sh
-python -m unittest testesunitarios.testes
+python -m unittest unit_tests.tests
 ```
 
-### Cobertura de testes
+### Test coverage
 
-Para verificar a cobertura dos testes e gerar um relatório HTML:
+To check test coverage and generate an HTML report:
 
 ```sh
-python -m coverage run -m unittest testesunitarios.testes
+python -m coverage run -m unittest unit_tests.tests
 python -m coverage html
 start htmlcov/index.html
 ```
 
-O relatório estará disponível em `htmlcov/index.html`.  
-Abra este arquivo no navegador para visualizar a cobertura dos testes.
+The report will be available at `htmlcov/index.html`.  
+Open this file in your browser to view test coverage.
 
-## Observações
+## Notes
 
-- Os dados são salvos em `/dados/spotify_data.db` (utilizando SQLAlchemy ORM) e arquivos CSV na pasta `/dados`.
-- O projeto segue boas práticas de separação de camadas (infraestrutura, domínio, aplicação e interface).
-- Os testes utilizam mocks para simular chamadas à API, manipulação de arquivos e operações no banco de dados, garantindo rapidez e confiabilidade.
+- Data is saved in `/data/spotify_data.db` (using SQLAlchemy ORM) and CSV files in the `/data` folder.
+- The project follows good practices for layer separation (infrastructure, domain, application, and interface).
+- Tests use mocks to simulate API calls, file manipulation, and database operations, ensuring speed and reliability.
