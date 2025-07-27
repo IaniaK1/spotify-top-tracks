@@ -1,11 +1,11 @@
-class AtualizarDadosUseCase:
+class UpdateDataUseCase:
     def __init__(self, spotify_api, checagem_data_dados, criar_csv, inserir_dados_csv_no_banco):
         self.spotify_api = spotify_api
         self.checagem_data_dados = checagem_data_dados
         self.criar_csv = criar_csv
         self.inserir_dados_csv_no_banco = inserir_dados_csv_no_banco
 
-    def executar(self, artistas_json):
+    def execute(self, artistas_json):
         artistas = self.checagem_data_dados(artistas_json)
         if not artistas:
             print('Dados já atualizados. Nenhuma nova pesquisa será executada.')

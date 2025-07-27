@@ -30,7 +30,7 @@ class SpotifyAPI:
             self._token_spotify = self._solicitar_token()
         return self._token_spotify.token
 
-    def _solicitar_token(self):
+    def _request_token(self):
         """
         Solicita e retorna um novo token de acesso a API do Spotify o fluxo client credentials.
 
@@ -58,7 +58,7 @@ class SpotifyAPI:
             print(f'Erro ao solicitar token: {e}')
             return None
 
-    def buscar_artista(self, artista):
+    def search_artist(self, artista):
         """
         Busca o ID de um artista pelo nome usando a API do Spotify.
 
@@ -87,7 +87,7 @@ class SpotifyAPI:
 
         return Artista(nome=dados_artista['name'], id_artista=dados_artista['id'])
     
-    def buscar_top_tracks(self, artista: Artista):
+    def search_top_tracks(self, artista: Artista):
         """
         Busca as faixas mais populares de um artista usando a API do Spotify.
 

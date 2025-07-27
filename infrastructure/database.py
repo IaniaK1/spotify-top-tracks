@@ -37,8 +37,8 @@ class TopTracks(Base):
 
 Base.metadata.create_all(bind=db)
 
-class BancoDeDados:
-    def checagem_data_dados(self, artista_json):
+class Database:
+    def check_data_date(self, artista_json):
         """
         Verifica se existem dados para cada artista presente no JSON para a data atual.
 
@@ -69,7 +69,7 @@ class BancoDeDados:
         
         return artistas_sem_dados
 
-    def criar_csv(self, resultados):
+    def create_csv(self, resultados):
         """
         Cria um arquivo CSV com os resultados das tracks dos artistas.
 
@@ -108,7 +108,7 @@ class BancoDeDados:
             print(e)
             return
 
-    def inserir_dados_csv_no_banco(self, pasta_csv='dados'):
+    def insert_csv_data_to_database(self, pasta_csv='dados'):
         """
         Lê todos os arquivos CSV da pasta especificada e insere os dados no banco de dados.
 
@@ -146,7 +146,7 @@ class BancoDeDados:
         except Exception as e:
             raise RuntimeError(f'Erro ao inserir dados do CSV {arquivo}: {e}')
 
-    def consultar_dados_artistas(self, filtro):
+    def query_artist_data(self, filtro):
         """
         Buscar artistas e suas top tracks no banco de dados pelo nome (case-insensitive) ou id exato.
 
@@ -168,7 +168,7 @@ class BancoDeDados:
 
         return info_artistas
 
-    def consultar_dados_top_tracks(self, id_artista):
+    def query_top_tracks_data(self, id_artista):
         """
         Buscar top tracks e suas informacoes pelo id.
 
@@ -189,7 +189,7 @@ class BancoDeDados:
 
         return tracks
 
-    def exibir_artistas(self):
+    def display_artists(self):
         """
         Exibe todos os artistas cadastrados no banco, ordenados alfabeticamente.
         Retorna True se houver artistas, False se não houver.

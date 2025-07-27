@@ -10,9 +10,9 @@ from datetime import date
 from io import StringIO
 from contextlib import redirect_stdout
 
-class TestesSpotifyAPI(unittest.TestCase):
+class TestsSpotifyAPI(unittest.TestCase):
     @patch('requests.post')
-    def test_solicitar_token(self, mock_post):
+    def test_request_token(self, mock_post):
         """
         Testa se o método _solicitar_token retorna um objeto Token válido ao receber resposta da API.
         """
@@ -42,7 +42,7 @@ class TestesSpotifyAPI(unittest.TestCase):
 
     @patch('requests.post')
     @patch('requests.get')
-    def test_buscar_artista(self, mock_get, mock_post):
+    def test_search_artist(self, mock_get, mock_post):
         """
         Testa se buscar_artista retorna corretamente o objeto Artista ao consultar a API do Spotify.
         """
@@ -75,7 +75,7 @@ class TestesSpotifyAPI(unittest.TestCase):
 
     @patch('requests.get')
     @patch('requests.post')
-    def test_buscar_top_tracks(self, mock_post, mock_get):
+    def test_search_top_tracks(self, mock_post, mock_get):
         """
         Testa se buscar_top_tracks retorna corretamente as informacoes das faixas mais populares do artista.
         """
@@ -135,7 +135,7 @@ class TestesBancoDeDados(unittest.TestCase):
     def setUp(self):
         self.banco = BancoDeDados()
 
-    def test_checagem_data_dados(self):
+    def test_check_data_date(self):
         """
         Testa a funcao checagem_data_dados.
         Limpa o banco antes do teste (ainda tem o csv), cria artistas no banco,
@@ -176,7 +176,7 @@ class TestesBancoDeDados(unittest.TestCase):
         session.query(Artistas).delete()
         session.commit()
 
-    def test_criar_csv(self):
+    def test_create_csv(self):
         """
         Testa se criar_csv gera o arquivo CSV corretamente a partir dos resultados.
         """
@@ -199,7 +199,7 @@ class TestesBancoDeDados(unittest.TestCase):
                   assert mock_writer.writeheader is not None
                   assert mock_writer.writerow is not None
 
-    def test_inserir_dados_csv_no_banco(self):
+    def test_insert_csv_data_to_database(self):
         """
         Testa se inserir_dados_csv_no_banco insere corretamente os dados do CSV no banco.
         """
@@ -233,7 +233,7 @@ class TestesBancoDeDados(unittest.TestCase):
                     session.query(Artistas).delete()
                     session.commit()
 
-    def test_consultar_dados_artistas(self):
+    def test_query_artist_data(self):
         """
         Testa se consultar_dados_artistas retorna os artistas corretos para diferentes filtros.
         """
@@ -263,7 +263,7 @@ class TestesBancoDeDados(unittest.TestCase):
         session.query(Artistas).delete()
         session.commit()
 
-    def test_consultar_dados_top_tracks(self):
+    def test_query_top_tracks_data(self):
         """
         Testa se consultar_dados_top_tracks retorna as tracks mais populares da data mais recente.
         """
@@ -312,7 +312,7 @@ class TestesBancoDeDados(unittest.TestCase):
         session.query(Artistas).delete()
         session.commit()
 
-    def test_exibir_artisas(self):
+    def test_display_artists(self):
         """
         Testa se exibir_artistas imprime corretamente todos os artistas cadastrados no banco.
         """

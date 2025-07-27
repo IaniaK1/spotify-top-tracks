@@ -1,10 +1,10 @@
-class ConsultarDadosUseCase:
+class QueryDataUseCase:
     def __init__(self, consultar_artistas, consultar_tracks, filtro=None):
         self.consultar_artistas = consultar_artistas
         self.consultar_tracks = consultar_tracks
         self.filtro = filtro
 
-    def executar(self):
+    def execute(self):
         if self.filtro == None:
             filtro = input('\nPara mais informações, digite nomes ou IDs dos artistas separados por vírgula: ')
             filtro_lista = [f.strip() for f in filtro.split(',')]

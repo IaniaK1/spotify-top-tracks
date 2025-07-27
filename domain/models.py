@@ -4,21 +4,21 @@ import time
 
 
 @dataclass
-class Artista:
+class Artist:
    """
    Classe para armazenar as informações do artista que resultam da busca na API do Spotify.
    """
-   nome: str
-   id_artista: str
+   name: str
+   artist_id: str
 
 @dataclass
 class Track:
     """
     Classe para armazenar as informações da track do artista que resultam da busca na API do Spotify.
     """
-    nome_track: str
-    id_track: str
-    popularidade: int
+    track_name: str
+    track_id: str
+    popularity: int
     album: str
 
 @dataclass
@@ -27,12 +27,12 @@ class Token:
     Classe para armazenar o token de acesso a sua respectiva API.
     """
     token: str
-    _expira_em: int
-    _momento_criacao: float = field(default_factory=time.time)
+    _expires_in: int
+    _creation_time: float = field(default_factory=time.time)
 
     @property
-    def valido(self) -> bool:
+    def valid(self) -> bool:
         """
         Retorna True se o token ainda está válido, False caso contrário.
         """
-        return (time.time() - self._momento_criacao) < self._expira_em
+        return (time.time() - self._creation_time) < self._expires_in
